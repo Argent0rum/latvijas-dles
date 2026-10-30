@@ -1,0 +1,25 @@
+name: Datu pārbaude
+
+on:
+  pull_request: {}
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Pārbaudīt jautājumu bankas un to, ka šodienas mīklas nemainās
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git show origin/${{ github.base_ref }}:index.html > /tmp/base.html 2>/dev/null || true
+          else
+            git show HEAD~1:index.html > /tmp/base.html 2>/dev/null || true
+          fi
+          if [ -s /tmp/base.html ]; then node scripts/check.cjs /tmp/base.html; else node scripts/check.cjs; fi

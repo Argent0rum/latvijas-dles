@@ -4,6 +4,8 @@
   "description": "Latviešu dienas minēšanas spēles",
   "scripts": {
     "build": "node src/build.js",
+    "check": "node scripts/check.cjs",
+    "prices": "node scripts/update-prices.mjs",
     "map": "node src/build-map.js && node src/build.js"
   },
   "devDependencies": {

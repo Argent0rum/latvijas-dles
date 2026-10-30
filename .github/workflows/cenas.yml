@@ -1,0 +1,30 @@
+name: Cenu atjaunošana
+
+on:
+  schedule:
+    # 12. un 20. datumā 22:10 UTC (pēc pusnakts Rīgā), lai jaunās cenas sāktu darboties ar jaunu dienu
+    - cron: "10 22 12,20 * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Ielādēt jaunākās CSP cenas
+        run: node scripts/update-prices.mjs
+      - name: Pārbaudīt datus un mīklas
+        run: node scripts/check.cjs
+      - name: Iesūtīt izmaiņas
+        run: |
+          if git diff --quiet; then echo "Jaunu cenu nav."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Cenas: jaunākie CSP dati"
+          git push
