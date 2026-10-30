@@ -1,4 +1,4 @@
-<title>Latvijas dles</title>
+<title>Latvijas dilles</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -216,7 +216,7 @@ h3 { font: 800 17px var(--display); margin: 0; }
 
 <header class="band gutter">
   <div class="inner">
-    <div class="brand">Latvijas dles<small id="meta">Dienas spēles</small></div>
+    <div class="brand">Latvijas dilles<small id="meta">Dienas spēles</small></div>
     <button class="small" id="copyall" disabled>Kopēt dienas rezultātus</button>
   </div>
 </header>
@@ -1015,7 +1015,7 @@ function status() {
   $("copyall").disabled = !(kDone || (sState && sDone()) || (lState && lDone()) || anyEst);
 }
 $("copyall").addEventListener("click", () => {
-  const parts = [`Latvijas dles · ${dayLabel}`];
+  const parts = [`Latvijas dilles · ${dayLabel}`];
   if (kState && kState.guesses.length >= K_ROUNDS) parts.push(kurShare());
   if (sState && sDone()) parts.push(siltsShare());
   if (lState && lDone()) parts.push(laiksShare());

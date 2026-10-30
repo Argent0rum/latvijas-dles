@@ -10,7 +10,7 @@ const desc = "Latviešu dienas spēles: Kur ir?, Silts–auksts, Laika līnija, 
 const head = `<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="${desc}">
-<meta property="og:title" content="Latvijas dles">
+<meta property="og:title" content="Latvijas dilles">
 <meta property="og:description" content="${desc}">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#9e3039">
