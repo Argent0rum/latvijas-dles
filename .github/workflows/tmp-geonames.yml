@@ -1,0 +1,25 @@
+name: Pagaidu GeoNames lejupielāde
+on:
+  push:
+    branches: [tmp/geonames]
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Lejupielādēt GeoNames LV
+        run: |
+          curl -sSfL -o /tmp/LV.zip https://download.geonames.org/export/dump/LV.zip
+          unzip -o -q /tmp/LV.zip -d /tmp/lv
+          mkdir -p tmp
+          awk -F'\t' 'BEGIN{OFS="\t"} $7=="P" || $7=="L" || $7=="T" || $7=="H" || $7=="S" {n=($4==""?0:split($4,a,",")); print $2,$5,$6,$7,$8,$15,n,$17}' /tmp/lv/LV.txt > tmp/lv-places.tsv
+          wc -l tmp/lv-places.tsv
+      - name: Iesūtīt
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tmp/lv-places.tsv
+          git commit -m "tmp: GeoNames LV"
+          git push
