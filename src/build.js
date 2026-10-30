@@ -16,5 +16,6 @@ const head = `<meta charset="utf-8">
 <meta name="theme-color" content="#9e3039">
 <link rel="icon" href="${icon}">
 <style>${reset}</style>`;
+if (process.argv[2]) fs.writeFileSync(process.argv[2], body);   // body only (for previews)
 fs.writeFileSync(path.join(__dirname, "..", "index.html"), `<!doctype html>\n<html lang="lv">\n<head>\n${head}\n</head>\n<body>\n${body}\n</body>\n</html>\n`);
 console.log("index.html uzbūvēts");
