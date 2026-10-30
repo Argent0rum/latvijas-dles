@@ -14,7 +14,8 @@ function day(f, d) {
     kur: f.kurPicks(d).map((p) => p[0]),
     silts: f.sTarget(d).name,
     laiks: f.lPicks(d),
-    cena: f.priceRounds(d).map((r) => [r.name, r.past ? r.year : "now", r.a]),
+    // price values may change (monthly CSP update); which products are drawn must not
+    cena: f.priceRounds(d).map((r) => [r.name, r.past ? r.year : "now"]),
     fermi: f.fermiRounds(d).map((r) => [r.title, r.a]),
   };
 }
