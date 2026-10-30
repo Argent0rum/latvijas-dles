@@ -74,6 +74,7 @@ const lines = [
   report.notFound.length ? "Neatrastas CSP tabulā:\n  " + report.notFound.join(", ") : "",
 ].filter(Boolean).join("\n");
 console.log(lines);
+if (process.env.REPORT_FILE) fs.writeFileSync(process.env.REPORT_FILE, "Cenas: jaunākie CSP dati\n\n" + lines + "\n");
 if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, "## Cenu atjaunošana\n```\n" + lines + "\n```\n");
 if (found < P.items.length * 0.5) {
   console.error("Atrasta mazāk nekā puse preču — iespējams, CSP mainījis tabulas struktūru. Faili netika mainīti.");

@@ -13,12 +13,14 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
       - name: Ielādēt jaunākās CSP cenas
         run: node scripts/update-prices.mjs
+        env:
+          REPORT_FILE: /tmp/cenas.txt
       - name: Pārbaudīt datus un mīklas
         run: node scripts/check.cjs
       - name: Iesūtīt izmaiņas
@@ -26,5 +28,5 @@ jobs:
           if git diff --quiet; then echo "Jaunu cenu nav."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "Cenas: jaunākie CSP dati"
+          git commit -a -F /tmp/cenas.txt
           git push
