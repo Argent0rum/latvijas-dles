@@ -889,11 +889,11 @@ function priceRounds(day) {
     const year = slot === "h15" ? 2015 : slot === "h10" ? 2010 : null;
     const a = past ? (year === 2015 ? it.p15 : it.p10) : it.p;
     const hist = [["2010. g. dec.", it.p10, 2010], ["2015. g. dec.", it.p15, 2015], [perShort(it.t), it.p, "now"]].filter((x) => x[1] != null);
-    return { name: it.n, title: it.n, unit: `${unitLabel(it.u)} · vidēji visām markām un veikaliem Latvijā`, suffix: "€", a, dec: 2, past,
+    return { name: it.n, title: it.n, unit: `${unitLabel(it.u)} · ${it.s ? "vidēji Latvijā" : "vidēji visām markām un veikaliem Latvijā"}`, suffix: "€", a, dec: 2, past,
       tag: past ? `${year}. gada decembrī` : perLong(it.t),
       hint: past ? `${perLong(it.t)} tas maksāja <b>${fmtN(it.p, 2)} €</b>. Cik maksāja ${year}. gadā?` : "",
       hist, year, key: past ? year : "now",
-      src: year === 2010 ? "CSP vidējā cena visām markām un veikaliem; 2010. gada cena latos pārrēķināta eiro (0,702804 Ls = 1 €)." : "CSP vidējā mazumtirdzniecības cena visām markām un veikaliem Latvijā." };
+      src: (it.s ? "CSP vidējā cena Latvijā" : "CSP vidējā mazumtirdzniecības cena visām markām un veikaliem Latvijā") + (year === 2010 ? "; 2010. gada cena latos pārrēķināta eiro (0,702804 Ls = 1 €)." : ".") };
   });
 }
 const fSim = { day: -1, last: new Map(), days: {} };
