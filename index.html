@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Latviešu dienas spēles: Kur ir?, Silts–auksts, Laika līnija, Cik maksā? un Cik Latvijā? Katru dienu jaunas mīklas.">
-<meta property="og:title" content="Latvijas dles">
+<meta property="og:title" content="Latvijas dilles">
 <meta property="og:description" content="Latviešu dienas spēles: Kur ir?, Silts–auksts, Laika līnija, Cik maksā? un Cik Latvijā? Katru dienu jaunas mīklas.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#9e3039">
@@ -12,7 +12,7 @@
 <style>html{color-scheme:light}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
-<title>Latvijas dles</title>
+<title>Latvijas dilles</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -230,7 +230,7 @@ h3 { font: 800 17px var(--display); margin: 0; }
 
 <header class="band gutter">
   <div class="inner">
-    <div class="brand">Latvijas dles<small id="meta">Dienas spēles</small></div>
+    <div class="brand">Latvijas dilles<small id="meta">Dienas spēles</small></div>
     <button class="small" id="copyall" disabled>Kopēt dienas rezultātus</button>
   </div>
 </header>
@@ -1402,7 +1402,7 @@ function status() {
   $("copyall").disabled = !(kDone || (sState && sDone()) || (lState && lDone()) || anyEst);
 }
 $("copyall").addEventListener("click", () => {
-  const parts = [`Latvijas dles · ${dayLabel}`];
+  const parts = [`Latvijas dilles · ${dayLabel}`];
   if (kState && kState.guesses.length >= K_ROUNDS) parts.push(kurShare());
   if (sState && sDone()) parts.push(siltsShare());
   if (lState && lDone()) parts.push(laiksShare());

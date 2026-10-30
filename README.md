@@ -1,4 +1,4 @@
-# Latvijas dles
+# Latvijas dilles
 
 Latviešu dienas minēšanas spēles vienā lapā. Katru dienu pusnaktī (pēc Rīgas laika) visiem parādās tās pašas jaunas mīklas.
 

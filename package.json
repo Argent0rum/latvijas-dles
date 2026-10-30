@@ -1,7 +1,7 @@
 {
   "name": "latvijas-dles",
   "private": true,
-  "description": "Latviešu dienas minēšanas spēles",
+  "description": "Latvijas dilles – latviešu dienas minēšanas spēles",
   "scripts": {
     "build": "node src/build.js",
     "check": "node scripts/check.cjs",
