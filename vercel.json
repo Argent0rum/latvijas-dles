@@ -1,0 +1,5 @@
+{
+  "installCommand": "echo bez atkarībām",
+  "buildCommand": "node src/build.js",
+  "outputDirectory": "."
+}
