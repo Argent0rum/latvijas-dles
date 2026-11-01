@@ -35,11 +35,15 @@ Progress glabājas spēlētāja pārlūkā. Serveris un konts nav vajadzīgs.
 3. Lai ierakstu izņemtu, pievieno `"to": "GGGG-MM-DD"`, nevis dzēs to.
 4. Palaid `npm run build` un `node scripts/check.cjs`.
 
+## Atkārtošanās
+
+No 2026. gada 2. novembra viens un tas pats ieraksts neatkārtojas ātrāk kā pēc ~3 nedēļām: notikumi, cenas un "Cik Latvijā?" jautājumi ne biežāk kā reizi 21 dienā (ja banka par mazu, vismaz 14), pilsētas un vietas 18–120 dienas atkarībā no lieluma, Silts–auksts mērķis 50 dienas. Pievienojot jaunus ierakstus, šie logi tikai uzlabojas.
+
 ## Automātiskā atjaunošana
 
 - **Cenas**: `.github/workflows/cenas.yml` katra mēneša 12. un 20. datumā naktī ielādē jaunākās CSP vidējās cenas (tabula PCC010m) un iesūta izmaiņas. Atjauno tikai tās preces, kuras izdevās viennozīmīgi atrast un kuru cena nav mainījusies aizdomīgi stipri. Ja CSP maina tabulas struktūru, darbība apstājas un faili netiek mainīti. Var palaist arī ar roku: Actions → Cenu atjaunošana → Run workflow.
 - **Pārbaude**: `.github/workflows/parbaude.yml` katram pull request un iesūtījumam pārbauda datus un to, ka šodienas mīklas nemainās.
-- **Jauni jautājumi**: ieplānots Claude uzdevums reizi mēnesī atver pull request ar jauniem, avotos pārbaudītiem jautājumiem un notikumiem. Tie nonāk lapā tikai pēc apstiprināšanas (Merge).
+- **Jauni jautājumi**: ieplānots Claude uzdevums katra mēneša 1. datumā pievieno jaunus, avotos pārbaudītus notikumus un jautājumus un iesūta tos tieši `main` zarā (tikai tad, ja `scripts/check.cjs` izdodas). Jo lielāka banka, jo mazāk jaunu ierakstu katru reizi. Commit ziņā ir katra ieraksta avots.
 
 ## Avoti
 
