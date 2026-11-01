@@ -634,7 +634,9 @@ let today, n, dayLabel;
 /* ================= KUR IR? ================= */
 const K_ROUNDS = 5;
 const K_SLOTS = [0, 1, 1, 2, 2];          // tier per round: 1 bigger town, 2 middle, 2 small
-const K_COOL = [22, 16, 24];              // days before a place may come back, per tier
+const K_COOL = [22, 16, 24];              // days before a place may come back, per tier (until 1.11.2026)
+const COOL_CUT = dayOf("2026-11-02");     // from this day on the longer no-repeat windows below apply
+const K_COOL2 = [24, 18, 120];
 const K_MIN_KM = 60;                      // places on one day are at least this far apart
 function kurLegacy(day) {                  // day #1 (29.10.2026) was played with the first version; keep it identical
   const PER = [1, 2, 2], picks = [];
@@ -648,10 +650,15 @@ function kurPicks(day) {
     const d = ++kurSim.day, picks = [];
     K_SLOTS.forEach((t, slot) => {
       const cand = shuffled(D.tiers[t].filter((c) => live(c, d)), 1000003 * d + 7919 * slot + 17);
+      // day 1 (29.10.) was drawn separately; from COOL_CUT its places also count as "recently seen"
+      const seen = (n) => (kurSim.last.has(n) ? kurSim.last.get(n) : d >= COOL_CUT && (kurSim.leg0 ||= new Set(kurLegacy(0).map((p) => p[0]))).has(n) ? 0 : null);
       const ok = (c, cool, dist) => !picks.includes(c)
-        && !(kurSim.last.has(c[0]) && d - kurSim.last.get(c[0]) <= cool)
+        && !(seen(c[0]) != null && d - seen(c[0]) <= cool)
         && picks.every((p) => km([p[1], p[2]], [c[1], c[2]]) >= dist);
-      picks.push(cand.find((c) => ok(c, K_COOL[t], K_MIN_KM)) || cand.find((c) => ok(c, K_COOL[t], 35)) || cand.find((c) => ok(c, 0, 35)) || cand.find((c) => ok(c, 0, 0)));
+      if (d < COOL_CUT) picks.push(cand.find((c) => ok(c, K_COOL[t], K_MIN_KM)) || cand.find((c) => ok(c, K_COOL[t], 35)) || cand.find((c) => ok(c, 0, 35)) || cand.find((c) => ok(c, 0, 0)));
+      else { const c2 = K_COOL2[t];   // relax distance first, the no-repeat window last
+        picks.push(cand.find((c) => ok(c, c2, K_MIN_KM)) || cand.find((c) => ok(c, c2, 35)) || cand.find((c) => ok(c, c2, 0))
+          || cand.find((c) => ok(c, Math.floor(c2 / 2), 0)) || cand.find((c) => ok(c, 0, 0))); }
     });
     picks.forEach((p) => kurSim.last.set(p[0], d));
     kurSim.days[d] = [picks[0], ...shuffled(picks.slice(1), 31337 + d)];
@@ -915,7 +922,8 @@ function lPicks(day) {
       const ok = (i, cool) => (e === -1 || era(EV[i][0]) === e) && !picks.includes(i)
         && picks.every((p) => Math.abs(EV[p][0] - EV[i][0]) >= L_GAP)
         && !(lSim.last.has(i) && d - lSim.last.get(i) <= cool);
-      picks.push(cand.find((i) => ok(i, L_COOL)) ?? cand.find((i) => ok(i, 3)) ?? cand.find((i) => ok(i, 0)));
+      if (d < COOL_CUT) picks.push(cand.find((i) => ok(i, L_COOL)) ?? cand.find((i) => ok(i, 3)) ?? cand.find((i) => ok(i, 0)));
+      else picks.push(cand.find((i) => ok(i, 21)) ?? cand.find((i) => ok(i, 14)) ?? cand.find((i) => ok(i, 7)) ?? cand.find((i) => ok(i, 0)));
     });
     picks.forEach((i) => lSim.last.set(i, d));
     // starting order: shuffled until at most one event already sits in its place
@@ -1255,7 +1263,8 @@ function pickDaily(sim, pool, slots, day, cool, seedBase, accept) {
     slots.forEach((slot, si) => {
       const cand = shuffled(pool.map((_, i) => i).filter((i) => live(pool[i], d)), seedBase * (d + 7) + 31 * si + 5);
       const ok = (i, c) => accept(i, slot) && !picks.includes(i) && !(sim.last.has(i) && d - sim.last.get(i) <= c);
-      picks.push(cand.find((i) => ok(i, cool)) ?? cand.find((i) => ok(i, 2)) ?? cand.find((i) => ok(i, 0)));
+      if (d < COOL_CUT) picks.push(cand.find((i) => ok(i, cool)) ?? cand.find((i) => ok(i, 2)) ?? cand.find((i) => ok(i, 0)));
+      else picks.push(cand.find((i) => ok(i, 21)) ?? cand.find((i) => ok(i, 14)) ?? cand.find((i) => ok(i, 7)) ?? cand.find((i) => ok(i, 0)));
     });
     picks.forEach((i) => sim.last.set(i, d)); sim.days[d] = picks;
   }
