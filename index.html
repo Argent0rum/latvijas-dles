@@ -1411,12 +1411,14 @@ function status() {
   $("copyall").disabled = !(kDone || (sState && sDone()) || (lState && lDone()) || anyEst);
 }
 $("copyall").addEventListener("click", () => {
-  const parts = [`Latvijas dilles · ${dayLabel}`];
-  if (kState && kState.guesses.length >= K_ROUNDS) parts.push(kurShare());
-  if (sState && sDone()) parts.push(siltsShare());
-  if (lState && lDone()) parts.push(laiksShare());
-  try { if (cenaG.done()) parts.push(cenaG.share()); if (fermiG.done()) parts.push(fermiG.share()); } catch {}
-  copyText(parts.join("\n\n"));
+  // one number per game, in tab order: points, guesses, tries, points, points ("X" = not solved, "–" = not finished)
+  const nums = [
+    kState && kState.guesses.length >= K_ROUNDS ? kurScore() : "–",
+    sState && sDone() ? (sWon() ? sState.guesses.length : "X") : "–",
+    lState && lDone() ? (lWon() ? lState.tries.length : "X") : "–",
+  ];
+  for (const G of [cenaG, fermiG]) { let v = "–"; try { if (G.done()) v = G.score(); } catch {} nums.push(v); }
+  copyText(nums.join(" "));
 });
 const ROUTES = { "#kur-ir": "kur", "#silts-auksts": "silts", "#laika-linija": "laiks", "#cik-maksa": "cena", "#cik-latvija": "fermi" };
 function route() {
