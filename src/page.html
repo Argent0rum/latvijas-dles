@@ -217,7 +217,7 @@ h3 { font: 800 17px var(--display); margin: 0; }
 <header class="band gutter">
   <div class="inner">
     <div class="brand">Latvijas dilles<small id="meta">Dienas spēles</small></div>
-    <button class="small" id="copyall" disabled>Kopēt dienas rezultātus</button>
+    <button class="small" id="copyall" disabled>Kopēt rezultātu</button>
   </div>
 </header>
 
@@ -607,7 +607,7 @@ function kurFinish() {
   kPuzzle.forEach((t, i) => kurPair(sl, kState.guesses[i], t, false));
   kurList();
 }
-$("kur-copy").addEventListener("click", () => copyText(kurShare(), $("kur-share")));
+$("kur-copy").addEventListener("click", () => copyText(String(gameNum("kur"))));
 
 /* ================= SILTS–AUKSTS ================= */
 const S_POOL = [...D.tiers[0], ...D.tiers[1]];                         // targets: towns people know
@@ -750,7 +750,7 @@ $("silts-giveup").addEventListener("click", function () {
   if (this.dataset.armed !== "1") { this.dataset.armed = "1"; this.textContent = "Tiešām padoties?"; setTimeout(() => { this.dataset.armed = ""; this.textContent = "Padoties"; }, 3000); return; }
   sState.gaveUp = true; store.set("silts:" + today, sState); siltsRender();
 });
-$("silts-copy").addEventListener("click", () => copyText(siltsShare(), $("silts-share")));
+$("silts-copy").addEventListener("click", () => copyText(String(gameNum("silts"))));
 
 /* ================= LAIKA LĪNIJA ================= */
 const L_N = 6, L_TRIES = 5, L_COOL = 10, L_GAP = 2;
@@ -848,7 +848,7 @@ $("tl-check").addEventListener("click", () => {
 function laiksShare() {
   return `Laika līnija #${n + 1} · ${lWon() ? lState.tries.length : "✗"}/${L_TRIES}\n` + lState.tries.map((r) => r.map((x) => (x ? "🟩" : "⬜")).join("")).join("\n");
 }
-$("tl-copy").addEventListener("click", () => copyText(laiksShare(), $("tl-share")));
+$("tl-copy").addEventListener("click", () => copyText(String(gameNum("laiks"))));
 
 
 /* ================= ESTIMATE GAMES (Cik maksā? / Cik Latvijā?) ================= */
@@ -1003,7 +1003,7 @@ function estimateGame(k, roundsFor, shareName, titleText) {
   $(k + "-in").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); submit(); } });
   $(k + "-in").addEventListener("input", () => ($(k + "-err").textContent = ""));
   $(k + "-next").addEventListener("click", () => { render(); if (!G.done()) $(k + "-in").focus(); });
-  $(k + "-copy").addEventListener("click", () => copyText(G.share(), $(k + "-share")));
+  $(k + "-copy").addEventListener("click", () => copyText(String(gameNum(k))));
   return G;
 }
 const cenaG = estimateGame("cena", priceRounds, "Cik maksā?", "Uzmini vidējo cenu");
@@ -1020,26 +1020,25 @@ function status() {
     try { t = G.done() ? fmtNum(G.score()) : G.started() ? G.progress() + "/5" : ""; } catch {}
     $("st-" + id).textContent = t;
   }
-  let anyEst = false; try { anyEst = cenaG.done() || fermiG.done(); } catch {}
-  $("copyall").disabled = !(kDone || (sState && sDone()) || (lState && lDone()) || anyEst);
+  $("copyall").disabled = gameNum(openGame()) === "–";
 }
-$("copyall").addEventListener("click", () => {
-  // one number per game, in tab order: points, guesses, tries, points, points ("X" = not solved, "–" = not finished)
-  const nums = [
-    kState && kState.guesses.length >= K_ROUNDS ? kurScore() : "–",
-    sState && sDone() ? (sWon() ? sState.guesses.length : "X") : "–",
-    lState && lDone() ? (lWon() ? lState.tries.length : "X") : "–",
-  ];
-  for (const G of [cenaG, fermiG]) { let v = "–"; try { if (G.done()) v = G.score(); } catch {} nums.push(v); }
-  copyText(nums.join(" "));
-});
+// Copying gives one number for one game: points, guesses or tries ("X" = not solved, "–" = not finished)
+function gameNum(g) {
+  if (g === "kur") return kState && kState.guesses.length >= K_ROUNDS ? kurScore() : "–";
+  if (g === "silts") return sState && sDone() ? (sWon() ? sState.guesses.length : "X") : "–";
+  if (g === "laiks") return lState && lDone() ? (lWon() ? lState.tries.length : "X") : "–";
+  const G = g === "cena" ? cenaG : fermiG;
+  try { return G.done() ? G.score() : "–"; } catch { return "–"; }
+}
+const openGame = () => ROUTES[location.hash] || "kur";
+$("copyall").addEventListener("click", () => copyText(String(gameNum(openGame()))));
 const ROUTES = { "#kur-ir": "kur", "#silts-auksts": "silts", "#laika-linija": "laiks", "#cik-maksa": "cena", "#cik-latvija": "fermi" };
 function route() {
   const g = ROUTES[location.hash] || "kur";
   for (const k of ["kur", "silts", "laiks", "cena", "fermi"]) { $("g-" + k).hidden = k !== g; $("nav-" + k).removeAttribute("aria-current"); }
   $("nav-" + g).setAttribute("aria-current", "page");
 }
-window.addEventListener("hashchange", route);
+window.addEventListener("hashchange", () => { route(); status(); });
 function init() {
   const p = rigaParts();
   today = dateKey(p);
