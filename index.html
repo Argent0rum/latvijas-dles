@@ -203,7 +203,12 @@ h3 { font: 800 17px var(--display); margin: 0; }
 .numfield:focus-within { outline: 3px solid var(--blue); outline-offset: 2px; }
 .numfield input { border: 0; background: transparent; font: 700 24px var(--mono); padding: 12px 14px; min-width: 0; flex: 1 1 auto; color: var(--ink); }
 .numfield input:focus-visible { outline: none; }
-.numfield span { padding-right: 14px; color: var(--muted); font-weight: 600; white-space: nowrap; }
+.numfield span { padding-right: 14px; color: var(--brand); font-weight: 800; font-size: 17px; white-space: nowrap; }
+.unitchip { align-self: flex-start; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; padding: 8px 12px; border-radius: 10px; background: color-mix(in srgb, var(--gold) 20%, var(--surface)); border: 1.5px solid color-mix(in srgb, var(--gold) 55%, var(--surface)); font-size: 15px; }
+.unitchip b { font: 800 18px var(--mono); color: var(--brand); }
+.unitchip small { color: var(--muted); font-size: 13px; }
+.preview { margin: -6px 0 0; font-size: 16px; color: var(--muted); min-height: 22px; }
+.preview b { color: var(--ink); font-family: var(--mono); }
 .scale { position: relative; height: 54px; margin: 6px 4px 0; }
 .scale .track { position: absolute; left: 0; right: 0; top: 24px; height: 8px; border-radius: 999px; background: linear-gradient(90deg, var(--bad), var(--meh), var(--ok), var(--good) 46% 54%, var(--ok), var(--meh), var(--bad)); opacity: .35; }
 .scale .mk { position: absolute; top: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; font: 700 12px var(--mono); white-space: nowrap; }
@@ -336,11 +341,13 @@ h3 { font: 800 17px var(--display); margin: 0; }
     <div class="qcard">
       <div class="qtop"><span class="qtag" id="cena-tag"></span><span class="note" id="cena-step"></span></div>
       <div><p class="qtext" id="cena-q"></p><p class="qunit" id="cena-unit"></p></div>
+      <div class="unitchip" id="cena-unitchip" hidden></div>
       <div class="hintline" id="cena-hint" hidden></div>
       <div class="numrow" id="cena-inrow">
         <label class="numfield"><input type="text" inputmode="decimal" id="cena-in" autocomplete="off" aria-label="Tavs minējums"><span id="cena-suffix"></span></label>
         <button class="primary" id="cena-go">Minēt</button>
       </div>
+      <p class="preview" id="cena-preview" aria-live="polite" hidden></p>
       <p class="err" id="cena-err" aria-live="polite"></p>
       <div id="cena-reveal" hidden style="display:flex;flex-direction:column;gap:14px">
         <div class="readout" id="cena-readout"></div>
@@ -369,11 +376,13 @@ h3 { font: 800 17px var(--display); margin: 0; }
     <div class="qcard">
       <div class="qtop"><span class="qtag" id="fermi-tag"></span><span class="note" id="fermi-step"></span></div>
       <div><p class="qtext" id="fermi-q"></p><p class="qunit" id="fermi-unit"></p></div>
+      <div class="unitchip" id="fermi-unitchip" hidden></div>
       <div class="hintline" id="fermi-hint" hidden></div>
       <div class="numrow" id="fermi-inrow">
         <label class="numfield"><input type="text" inputmode="decimal" id="fermi-in" autocomplete="off" aria-label="Tavs minējums"><span id="fermi-suffix"></span></label>
         <button class="primary" id="fermi-go">Minēt</button>
       </div>
+      <p class="preview" id="fermi-preview" aria-live="polite" hidden></p>
       <p class="err" id="fermi-err" aria-live="polite"></p>
       <div id="fermi-reveal" hidden style="display:flex;flex-direction:column;gap:14px">
         <div class="readout" id="fermi-readout"></div>
@@ -1247,6 +1256,22 @@ function fmtN(v, dec) {
   i = i.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
   return (neg ? "−" : "") + i + (f ? "," + f : "");
 }
+const unitScaleOf = (suffix) => (/mljrd/.test(suffix) ? 1e9 : /milj/.test(suffix) ? 1e6 : /tūkst/.test(suffix) ? 1e3 : 1);
+const unitRest = (suffix) => suffix.replace(/^(mljrd\.|milj\.|tūkst\.)\s*/, "");   // "milj. €" → "€"
+// what the player typed, in the question's unit; "12k" or "1,8 milj" typed for a question already in thousands etc. is converted
+function readGuess(raw, suffix) {
+  let v = parseNum(raw);
+  const sc = unitScaleOf(suffix);
+  if (sc > 1 && /[a-zāčēģīķļņšūž.]$/i.test(raw.trim())) v /= sc;
+  return v;
+}
+// a number in words: 1350000 → "1,35 milj.", 12000 → "12 tūkst.", 950 → "950"
+function inWords(n) {
+  const short = (x, sig) => String(+x.toPrecision(sig)).replace(".", ",");   // 1.35 → "1,35", 12 → "12"
+  const r = +n.toPrecision(3);
+  for (const [d, w] of [[1e9, "mljrd."], [1e6, "milj."], [1e3, "tūkst."]]) if (r >= d) return `${short(r / d, 3)} ${w}`;
+  return short(n, 4);
+}
 function parseNum(raw) {
   let s = String(raw).toLowerCase().replace(/[\s  €%]/g, "").replace(",", ".");
   let mul = 1;
@@ -1339,11 +1364,35 @@ function estimateGame(k, roundsFor, shareName, titleText) {
     $(k + "-unit").textContent = r.unit; $(k + "-unit").hidden = !r.unit;
     $(k + "-hint").hidden = !r.hint; $(k + "-hint").innerHTML = r.hint || "";
     $(k + "-suffix").textContent = r.suffix;
+    const chip = $(k + "-unitchip"), sc = unitScaleOf(r.suffix);
+    chip.hidden = k !== "fermi";
+    if (!chip.hidden) {
+      chip.textContent = "";
+      const b = document.createElement("b"); b.textContent = r.suffix;
+      const sm = document.createElement("small");
+      sm.textContent = sc > 1 ? `piem., 12 nozīmē ${fmtN(12 * sc, 0)}${unitRest(r.suffix) ? " " + unitRest(r.suffix) : ""}` : "";
+      chip.append(sc > 1 ? `Atbildi ${{1e3: "tūkstošos", 1e6: "miljonos", 1e9: "miljardos"}[sc]}:` : "Mērvienība:", b);
+      if (sm.textContent) chip.append(sm);
+    }
+    updatePreview();
+  }
+  // live "in words" line under the answer box
+  function updatePreview() {
+    const pv = $(k + "-preview");
+    if (k !== "fermi" || G.done()) { pv.hidden = true; return; }
+    pv.hidden = false;
+    const r = R[st.g.length], raw = $(k + "-in").value.trim(), v = readGuess(raw, r.suffix);
+    if (!raw || !(v > 0)) { pv.textContent = "\u00a0"; return; }
+    const sc = unitScaleOf(r.suffix), rest = unitRest(r.suffix);
+    pv.textContent = "";
+    const b = document.createElement("b");
+    if (sc > 1) { b.textContent = inWords(v * sc) + (rest ? " " + rest : ""); pv.append(`${fmtN(v, v % 1 ? r.dec || 2 : 0)} ${r.suffix} = `, b); }
+    else { b.textContent = inWords(v) + (r.suffix ? " " + r.suffix : ""); pv.append("= ", b); }
   }
   function reveal(i) {
     const r = R[i], g = st.g[i], grade = eGrade(g, r.a), pct = Math.round((g / r.a - 1) * 100);
     showQuestion(i);
-    $(k + "-inrow").hidden = true; $(k + "-err").textContent = ""; $(k + "-reveal").hidden = false;
+    $(k + "-inrow").hidden = true; $(k + "-err").textContent = ""; $(k + "-reveal").hidden = false; $(k + "-preview").hidden = true; $(k + "-unitchip").hidden = true;
     setReadout(k + "-readout", "g" + grade, `${fmtN(r.a, r.dec)} ${r.suffix}`,
       `Tavs minējums: ${fmtN(g, r.dec)} ${r.suffix} · ${pct === 0 ? "precīzi!" : (pct > 0 ? "+" : "") + pct + "%"} · +${ePoints(g, r.a)} punkti`);
     // log scale from a/4 to a*4; actual in the middle
@@ -1377,10 +1426,7 @@ function estimateGame(k, roundsFor, shareName, titleText) {
   function submit() {
     if (G.done()) return;
     const raw = $(k + "-in").value.trim();
-    let v = parseNum(raw);
-    // "40 mljrd" typed for a question already counted in mljrd. €: keep the number in the question's unit
-    const unitScale = /mljrd/.test(R[st.g.length].suffix) ? 1e9 : /milj/.test(R[st.g.length].suffix) ? 1e6 : /tūkst/.test(R[st.g.length].suffix) ? 1e3 : 1;
-    if (unitScale > 1 && /[a-zāčēģīķļņšūž.]$/i.test(raw)) v /= unitScale;
+    const v = readGuess(raw, R[st.g.length].suffix);
     if (!(v > 0)) { $(k + "-err").textContent = "Ieraksti pozitīvu skaitli, piemēram, 2,49 vai 12k."; return; }
     st.g.push(v); store.set(k + ":" + today, st);
     list(); showing = st.g.length - 1; reveal(showing); status();
@@ -1388,7 +1434,7 @@ function estimateGame(k, roundsFor, shareName, titleText) {
   }
   $(k + "-go").addEventListener("click", submit);
   $(k + "-in").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); submit(); } });
-  $(k + "-in").addEventListener("input", () => ($(k + "-err").textContent = ""));
+  $(k + "-in").addEventListener("input", () => { $(k + "-err").textContent = ""; updatePreview(); });
   $(k + "-next").addEventListener("click", () => { render(); if (!G.done()) $(k + "-in").focus(); });
   $(k + "-copy").addEventListener("click", () => copyText(String(gameNum(k))));
   return G;
