@@ -191,7 +191,7 @@ h3 { font: 800 17px var(--display); margin: 0; }
 .numfield input:focus-visible { outline: none; }
 .numfield span { padding-right: 14px; color: var(--brand); font-weight: 800; font-size: 17px; white-space: nowrap; }
 .unitchip { align-self: flex-start; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; padding: 8px 12px; border-radius: 10px; background: color-mix(in srgb, var(--gold) 20%, var(--surface)); border: 1.5px solid color-mix(in srgb, var(--gold) 55%, var(--surface)); font-size: 15px; }
-.unitchip b { font: 800 18px var(--mono); color: var(--brand); }
+.unitchip b { font-weight: 800; font-size: 18px; color: var(--brand); }
 .unitchip small { color: var(--muted); font-size: 13px; }
 .preview { margin: -6px 0 0; font-size: 16px; color: var(--muted); min-height: 22px; }
 .preview b { color: var(--ink); font-family: var(--mono); }
@@ -977,15 +977,13 @@ function estimateGame(k, roundsFor, shareName, titleText) {
     $(k + "-unit").textContent = r.unit; $(k + "-unit").hidden = !r.unit;
     $(k + "-hint").hidden = !r.hint; $(k + "-hint").innerHTML = r.hint || "";
     $(k + "-suffix").textContent = r.suffix;
+    // highlight only when the answer is asked in thousands / millions / billions
     const chip = $(k + "-unitchip"), sc = unitScaleOf(r.suffix);
-    chip.hidden = k !== "fermi";
+    chip.hidden = k !== "fermi" || sc === 1;
     if (!chip.hidden) {
       chip.textContent = "";
-      const b = document.createElement("b"); b.textContent = r.suffix;
-      const sm = document.createElement("small");
-      sm.textContent = sc > 1 ? `piem., 12 nozīmē ${fmtN(12 * sc, 0)}${unitRest(r.suffix) ? " " + unitRest(r.suffix) : ""}` : "";
-      chip.append(sc > 1 ? `Atbildi ${{1e3: "tūkstošos", 1e6: "miljonos", 1e9: "miljardos"}[sc]}:` : "Mērvienība:", b);
-      if (sm.textContent) chip.append(sm);
+      const b = document.createElement("b"); b.textContent = { 1e3: "tūkstošos", 1e6: "miljonos", 1e9: "miljardos" }[sc];
+      chip.append("Atbildi ", b);
     }
     updatePreview();
   }
